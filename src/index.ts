@@ -8,6 +8,7 @@ import {testingRouter} from "./routes/testing-route";
 import {runDb} from "./repositories/db";
 import {authRouter} from "./routes/auth-route";
 import {commentsRouter} from "./routes/comments-route";
+import cookieParser from 'cookie-parser'
 
 const bodyParser = require('body-parser');
 
@@ -16,6 +17,7 @@ const port = process.env.PORT || 3000
 
 
 app.use(bodyParser.json());
+app.use(cookieParser())
 
 app.use('/testing', testingRouter)
 app.use('/blogs', blogsRouter)

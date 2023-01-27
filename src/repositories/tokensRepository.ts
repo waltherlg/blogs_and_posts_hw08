@@ -14,6 +14,6 @@ export const expiredTokenRepository = {
     },
 
     async findExpiredToken (refreshToken: string): Promise<object | null> {
-        return await expiredTokenCollection.find({refreshToken: refreshToken})
+        return expiredTokenCollection.find({refreshToken: refreshToken})
     }
 }

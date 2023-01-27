@@ -48,3 +48,5 @@ yarn add uuid // генерация кодов
 yarn add @types/uuid -D
 
 yarn add date-fns
+
+yarn add cookie-parser
