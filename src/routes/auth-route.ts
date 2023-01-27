@@ -3,7 +3,7 @@ import {usersService} from "../domain/users-service";
 import {RequestWithBody} from "../models/types";
 import {userAuthModel, userInputModel} from "../models/users-models";
 import {jwtService} from "../application/jwt-service";
-import {authMiddleware} from "../middlewares/basic-auth.middleware";
+import {authMiddleware, refreshTokenCheck} from "../middlewares/basic-auth.middleware";
 import {
     confirmationCodeValidation,
     emailResendingValidation,
@@ -61,7 +61,8 @@ authRouter.post('/login',
     const user = await usersService.checkCredentials(req.body.loginOrEmail, req.body.password)
         if(user){
             const accessToken = await jwtService.createJWT(user)
-            res.status(200).send({accessToken})
+            const refreshToken = await jwtService.createJWTRefresh(user)
+            res.status(200).cookie("refreshToken", refreshToken).send({accessToken})
         }
         else res.sendStatus(401)
     })
@@ -77,3 +78,21 @@ authRouter.get('/me',
         res.status(200).send(currentUserInfo)
 
     })
+
+authRouter.post('/logout',
+    refreshTokenCheck,
+    async (req: Request, res: Response) => {
+    await jwtService.addTokenToRepo(req.user!._id, req.cookies!.refreshToken)
+        res.status(204).cookie("refreshToken", "")
+    })
+
+authRouter.post('/refresh-token',
+    refreshTokenCheck,
+    async (req: Request, res: Response) => {
+    const newRefreshToken = await jwtService.updateJWTRefresh(req.user!._id, req.cookies!.refreshToken)
+    const accessToken = {
+        "accessToken": jwtService.createJWT(req.user!)
+    }
+        res.status(200).cookie("refreshToken", newRefreshToken).send(accessToken)
+    }
+    )

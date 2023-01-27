@@ -1,5 +1,6 @@
 import {NextFunction, Request, Response} from "express";
 import {usersService} from "../domain/users-service";
+import {authService} from "../domain/auth-service";
 import {jwtService} from "../application/jwt-service";
 
 
@@ -29,7 +30,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
     const token = req.headers.authorization?.split(' ')[1]
 
-    const userId = await jwtService.getUserByIdToken(token)
+    const userId = await jwtService.getUserIdByToken(token)
     if (userId) {
         req.user = await usersService.getUserById(userId)
         next()
@@ -38,3 +39,23 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     res.sendStatus(401)
 }
 
+export const refreshTokenCheck = async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.cookies.refreshToken){
+        res.sendStatus(401)
+        return
+    }
+    const refreshToken = req.cookies.refreshToken
+    const isTokenExpired = await authService.isTokenExpired(refreshToken)
+    if (isTokenExpired) {
+        res.sendStatus(401)
+        return
+    }
+    const userId = await jwtService.getUserIdByToken(refreshToken)
+    if (userId) {
+        req.user = await usersService.getUserById(userId)
+        next()
+        return
+    }
+    res.sendStatus(401)
+
+}

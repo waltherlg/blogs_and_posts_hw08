@@ -1,6 +1,7 @@
 import {ObjectId} from "mongodb";
 import {userType, userTypeOutput} from "../models/types";
 import {usersRepository} from "../repositories/users-repository";
+import {expiredTokenRepository} from "../repositories/tokensRepository";
 import * as bcrypt from 'bcrypt'
 import {v4 as uuid4} from 'uuid'
 import add from 'date-fns/add'
@@ -81,6 +82,9 @@ export const authService = {
         return hash
     },
 
-
+    async isTokenExpired(refreshToken: string){
+        const isToken = await expiredTokenRepository.findExpiredToken(refreshToken)
+        return !!isToken
+    }
 }
 
