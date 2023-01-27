@@ -12,6 +12,7 @@ import {
     loginValidation, passwordValidation
 } from "../middlewares/input-validation-middleware/input-validation-middleware";
 import {authService} from "../domain/auth-service";
+import {tr} from "date-fns/locale";
 
 
 export const authRouter = Router({})
@@ -62,7 +63,7 @@ authRouter.post('/login',
         if(user){
             const accessToken = await jwtService.createJWT(user)
             const refreshToken = await jwtService.createJWTRefresh(user)
-            res.status(200).cookie("refreshToken", refreshToken).send({accessToken})
+            res.status(200).cookie("refreshToken", refreshToken, {httpOnly: true, secure: true}).send({accessToken})
         }
         else res.sendStatus(401)
     })
@@ -83,7 +84,7 @@ authRouter.post('/logout',
     refreshTokenCheck,
     async (req: Request, res: Response) => {
     await jwtService.addTokenToRepo(req.user!._id, req.cookies!.refreshToken)
-        res.cookie("refreshToken", "").sendStatus(204)
+        res.cookie("refreshToken", "", {httpOnly: true, secure: true}).sendStatus(204)
     })
 
 authRouter.post('/refresh-token',
@@ -93,6 +94,6 @@ authRouter.post('/refresh-token',
     const accessToken = {
         "accessToken": jwtService.createJWT(req.user!)
     }
-        res.status(200).cookie("refreshToken", newRefreshToken).send(accessToken)
+        res.status(200).cookie("refreshToken", newRefreshToken, {httpOnly: true, secure: true}).send(accessToken)
     }
     )
